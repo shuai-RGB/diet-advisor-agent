@@ -1,0 +1,55 @@
+[
+  {"message": "帮我生成减脂方案", "intent": "plan_all"},
+  {"message": "帮我做个完整方案", "intent": "plan_all"},
+  {"message": "给我一套完整的饮食计划", "intent": "plan_all"},
+  {"message": "我想一站式解决减肥", "intent": "plan_all"},
+  {"message": "帮我安排三餐和运动", "intent": "plan_all"},
+
+  {"message": "帮我生成一天的饮食锻炼报告", "intent": "report"},
+  {"message": "给我一份今天的健康报告", "intent": "report"},
+  {"message": "今天怎么安排饮食和锻炼", "intent": "report"},
+
+  {"message": "我想知道每天该吃多少热量", "intent": "goal"},
+  {"message": "我175cm 70kg 帮我算目标", "intent": "goal"},
+  {"message": "我的基础代谢是多少", "intent": "goal"},
+  {"message": "减脂每天吃多少卡", "intent": "goal"},
+  {"message": "我需要摄入多少蛋白质", "intent": "goal"},
+
+  {"message": "帮我搭配一日三餐", "intent": "meal_plan"},
+  {"message": "晚饭吃什么好", "intent": "meal_plan"},
+  {"message": "给我一份减脂食谱", "intent": "meal_plan"},
+  {"message": "今天吃什么", "intent": "meal_plan"},
+  {"message": "帮我配一周的菜单", "intent": "meal_plan"},
+
+  {"message": "我今天吃了米饭200克", "intent": "diet_analyze"},
+  {"message": "我今天喝了牛奶", "intent": "diet_analyze"},
+  {"message": "帮我分析今天的摄入", "intent": "diet_analyze"},
+  {"message": "我吃了鸡胸肉和西兰花", "intent": "diet_analyze"},
+  {"message": "我今天的饮食记录", "intent": "diet_analyze"},
+
+  {"message": "附近哪能买菜", "intent": "where_to_eat"},
+  {"message": "给我推荐几家餐厅", "intent": "where_to_eat"},
+  {"message": "附近有没有超市", "intent": "where_to_eat"},
+  {"message": "周边有什么好吃的", "intent": "where_to_eat"},
+  {"message": "我想找菜市场", "intent": "where_to_eat"},
+
+  {"message": "我想锻炼", "intent": "exercise"},
+  {"message": "跑步能减肥吗", "intent": "exercise"},
+  {"message": "健身计划怎么安排", "intent": "exercise"},
+  {"message": "给我推荐运动方式", "intent": "exercise"},
+  {"message": "怎么拉伸", "intent": "exercise"},
+
+  {"message": "今天天气怎么样", "intent": "weather"},
+  {"message": "北京今天冷不冷", "intent": "weather"},
+  {"message": "想查下天气", "intent": "weather"},
+  {"message": "明天会下雨吗", "intent": "weather"},
+  {"message": "现在温度多少", "intent": "weather"},
+
+  {"message": "什么是蛋白质", "intent": "query"},
+  {"message": "减脂期间能不能吃夜宵", "intent": "query"},
+  {"message": "高血压要注意什么", "intent": "query"},
+  {"message": "痛风不能吃什么", "intent": "query"},
+  {"message": "减肥不能吃什么", "intent": "query"},
+  {"message": "蛋白质吃多了会怎样", "intent": "query"},
+  {"message": "乳糖不耐受怎么办", "intent": "query"}
+]

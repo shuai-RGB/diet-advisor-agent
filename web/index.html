@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>健康助手</title>
+<style>
+:root{
+  --bg:#f4faf7;--surface:#ffffff;--surface-soft:#edf8f2;
+  --primary:#2f9e73;--primary-dark:#237a5b;--primary-soft:#dff4ea;--accent:#7cc9b0;
+  --text:#18352a;--muted:#6a7d74;--border:#dcebe4;
+  --danger:#cc4b4b;--warning:#b7791f;
+  --shadow:0 18px 45px rgba(39,92,70,.11);
+  --radius-lg:26px;--radius-md:18px;--radius-sm:12px;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--text);
+  background:radial-gradient(circle at top left,rgba(124,201,176,.32),transparent 34rem),linear-gradient(180deg,#f7fcfa 0%,var(--bg) 100%);
+  font-family:"Inter","PingFang SC","Microsoft YaHei",Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+.app-shell{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:22px 0 48px}
+
+/* 顶栏 */
+.topbar{position:sticky;top:14px;z-index:20;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
+  padding:14px 16px;border:1px solid rgba(220,235,228,.86);border-radius:24px;
+  background:rgba(255,255,255,.85);box-shadow:0 10px 28px rgba(39,92,70,.09);backdrop-filter:blur(18px)}
+.brand{display:inline-flex;gap:12px;align-items:center;min-width:210px}
+.brand-mark{display:grid;width:42px;height:42px;place-items:center;border-radius:16px;color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--accent));font-weight:800;font-size:18px}
+.brand strong,.brand small{display:block}
+.brand strong{font-size:16px}
+.brand small{margin-top:3px;color:var(--muted);font-size:12px}
+.nav-links{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.nav-links a{padding:9px 13px;border-radius:999px;color:var(--muted);font-size:14px;transition:160ms ease;cursor:pointer}
+.nav-links a:hover,.nav-links a.active{color:var(--primary-dark);background:var(--primary-soft)}
+.badge{display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;color:var(--primary-dark);background:var(--primary-soft);font-size:13px;font-weight:600}
+
+/* hero */
+.page{padding-top:28px}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:22px;align-items:stretch}
+.hero-panel,.card{border:1px solid rgba(220,235,228,.95);border-radius:var(--radius-lg);background:rgba(255,255,255,.9);box-shadow:var(--shadow)}
+.hero-panel{padding:42px;overflow:hidden}
+.hero-panel .badge{margin-bottom:18px}
+.hero-panel h1{margin:0 0 14px;max-width:620px;font-size:clamp(30px,5vw,56px);line-height:1.05;letter-spacing:-.05em}
+.hero-panel p{max-width:640px;margin:0;color:var(--muted);font-size:16px;line-height:1.75}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:28px}
+.grid{display:grid;gap:14px}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:18px}
+.stats{display:grid;gap:14px}
+.stat-card{padding:18px;border:1px solid var(--border);border-radius:var(--radius-md);background:linear-gradient(135deg,#fff,#f0faf5)}
+.stat-card strong{display:block;margin-top:7px;font-size:30px}
+.card{padding:22px}
+.card-title{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.card-title h3{margin:0;letter-spacing:-.02em}
+.card-title p{margin:6px 0 0;color:var(--muted);line-height:1.55}
+.muted{color:var(--muted)}
+
+/* 按钮 */
+.btn{display:inline-flex;min-height:40px;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border:1px solid transparent;border-radius:999px;color:var(--text);background:#fff;font-size:14px;font-weight:600;transition:transform 140ms ease,box-shadow 140ms ease}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(39,92,70,.14)}
+.btn.primary{color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent))}
+.btn.soft{color:var(--primary-dark);background:var(--primary-soft)}
+.btn.ghost{border-color:var(--border);color:var(--muted)}
+
+/* ===== 过程展示器（浮动小窗口，可缩放）===== */
+.flow-toggle{position:fixed;right:24px;bottom:24px;z-index:90;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 18px;border:none;border-radius:999px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent));font-weight:700;box-shadow:0 10px 26px rgba(39,92,70,.28);cursor:pointer}
+.flow-window{position:fixed;right:24px;bottom:80px;z-index:90;width:460px;max-width:calc(100vw - 32px);max-height:74vh;display:none;flex-direction:column;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:0 24px 60px rgba(39,92,70,.22);overflow:hidden;resize:both;min-width:320px;min-height:360px}
+.flow-window.open{display:flex}
+.flow-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:#fff}
+.flow-head b{font-size:14px}
+.flow-head .fb{display:flex;gap:6px}
+.flow-head button{width:26px;height:26px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--muted);font-size:12px;line-height:1}
+.flow-body{padding:14px 16px;overflow:auto;flex:1}
+.flow-body .controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.flow-body .mini-btn{flex:1;min-width:90px;padding:8px 10px;border:none;border-radius:999px;font-size:13px;font-weight:600}
+.flow-body .mini-btn.primary{color:#fff;background:var(--primary)}
+.flow-body .mini-btn.ghost{border:1px solid var(--border);background:#fff;color:var(--muted)}
+
+/* DAG（小窗口内，节点更紧凑）*/
+.dag{display:flex;flex-direction:column;align-items:center}
+.dglayer{display:flex;justify-content:center;gap:10px;width:100%}
+.dgnode{position:relative;min-width:96px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;text-align:center;transition:all .3s;cursor:pointer;box-shadow:0 3px 10px rgba(39,92,70,.05);flex:1}
+.dgnode .no{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;background:var(--surface-soft);color:var(--muted);border-radius:7px;font-size:11px;font-weight:700;margin-right:5px;vertical-align:middle}
+.dgnode b{font-size:12.5px;font-weight:600}
+.dgnode .sub{display:block;color:var(--muted);font-size:10.5px;margin-top:2px}
+.dgnode .dot{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--border)}
+.dgnode.running{border-color:var(--primary);box-shadow:0 0 0 3px rgba(47,158,115,.16);animation:glow 1s infinite}
+.dgnode.running .no{background:var(--primary);color:#fff}
+.dgnode.running .dot{background:var(--primary)}
+.dgnode.done{border-color:var(--primary)}
+.dgnode.done .no{background:var(--primary);color:#fff}
+.dgnode.done .dot{background:var(--primary)}
+.dgnode.done b{color:var(--primary-dark)}
+@keyframes glow{0%,100%{box-shadow:0 0 0 3px rgba(47,158,115,.12)}50%{box-shadow:0 0 0 7px rgba(47,158,115,.28)}}
+.dgedge{height:22px;width:2px;background:repeating-linear-gradient(180deg,var(--border) 0 4px,transparent 4px 8px);position:relative}
+.dgedge.active{background:repeating-linear-gradient(180deg,var(--primary) 0 4px,transparent 4px 8px);animation:flow .5s linear infinite}
+.dgedge .elabel{position:absolute;left:5px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--muted);white-space:nowrap}
+@keyframes flow{to{background-position:0 8px}}
+.parbar{display:flex;align-items:center;gap:6px;color:var(--primary);font-size:11px;margin:2px 0;font-weight:600}
+.parbar::before,.parbar::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(47,158,115,.4),transparent)}
+.feedback{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 2px;font-size:11px;color:var(--warning)}
+.feedback .fline{height:1px;width:60px;border-top:1px dashed var(--warning);position:relative}
+.feedback .fline::after{content:"↩";position:absolute;right:-13px;top:-8px;color:var(--warning)}
+
+/* 悬停浮层 */
+.tip{display:none;position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);width:300px;max-width:80vw;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:12px 14px;z-index:300;box-shadow:0 14px 40px rgba(39,92,70,.2);text-align:left;font-size:11px}
+.dgnode:hover .tip{display:block}
+.tip .vb-label{display:block;font-size:10px;color:var(--primary-dark);font-weight:700;letter-spacing:.3px;margin:9px 0 4px}
+.tip pre{background:var(--surface-soft);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:10.5px;line-height:1.5;color:var(--text);margin:0;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto;font-family:"Cascadia Mono",Consolas,monospace}
+.narr{font-size:12px;color:var(--text);margin-bottom:5px;padding:6px 9px;background:var(--primary-soft);border-left:3px solid var(--primary);border-radius:7px;font-weight:600}
+.tool{display:inline-block;background:var(--primary-soft);color:var(--primary-dark);padding:3px 9px;border-radius:999px;font-size:11px;margin:2px 5px 2px 0}
+.msg{display:inline-block;background:rgba(183,121,31,.1);border:1px solid rgba(183,121,31,.35);color:var(--warning);padding:3px 9px;border-radius:999px;font-size:11px;margin:2px 5px 2px 0}
+
+.chat-view .chat-card{border:1px solid rgba(220,235,228,.95);border-radius:var(--radius-lg);background:rgba(255,255,255,.92);box-shadow:var(--shadow);overflow:hidden}
+.chat-messages{display:grid;gap:12px;max-height:62vh;overflow:auto;padding:20px}
+.message{display:grid;max-width:80%;gap:6px}
+.message.user{justify-self:end}
+.bubble{padding:12px 15px;border-radius:16px;line-height:1.6;white-space:pre-wrap;font-size:14px}
+.message.user .bubble{color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent));border-bottom-right-radius:6px}
+.message.assistant .bubble{background:var(--surface-soft);border-bottom-left-radius:6px}
+.chat-composer{display:grid;grid-template-columns:1fr auto;gap:10px;padding:14px;border-top:1px solid var(--border);align-items:end}
+.chat-composer textarea{min-height:48px;max-height:120px;resize:vertical;padding:11px 12px;border:1px solid var(--border);border-radius:12px;color:var(--text);background:#fff;font-size:14px}
+.chat-composer .btn{min-height:44px}
+.chat-view .chat-messages{max-height:calc(100vh - 200px)}
+
+.home-top{margin-top:18px;padding:0}
+.input-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:16px 20px;border-bottom:1px solid var(--border)}
+.field-inline{display:flex;flex-direction:column;gap:4px}
+.field-inline label{font-size:11.5px;color:var(--muted)}
+.field-inline select,.field-inline input{padding:8px 10px;border:1px solid var(--border);border-radius:9px;color:var(--text);background:#fff;font-size:13px;transition:border-color .15s,box-shadow .15s}
+.field-inline select:focus,.field-inline input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(47,158,115,.12)}
+.input-bar .btn{min-height:38px}
+.two-col{display:grid;grid-template-columns:1fr 1fr}
+.col{padding:22px}
+.col-body{border-right:1px solid var(--border);text-align:center}
+.col h3{font-size:15px;letter-spacing:-.01em}
+.dash-hero{grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);margin-top:18px}
+.body-panel,.dash-panel{padding:26px}
+.body-panel{text-align:center}
+.body-svg{height:180px;width:auto;display:block;margin:0 auto}
+.dash-panel{text-align:left}
+.dash-main{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.ring-wrap{position:relative;width:120px;height:120px}
+.ring{width:120px;height:120px}
+.ring-center{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring-center b{font-size:24px;line-height:1}
+.ring-center span{font-size:11px;color:var(--muted)}
+.bars{display:grid;gap:11px}
+.bar-row{display:grid;grid-template-columns:66px 1fr 60px;gap:8px;align-items:center;font-size:12px}
+.bar-row .bl{color:var(--muted)}
+.bar-row .bv{text-align:right;font-weight:600}
+.bar-track{height:8px;border-radius:999px;background:var(--surface-soft);overflow:hidden}
+.bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+.chat-card{border:1px solid rgba(220,235,228,.95);border-radius:var(--radius-lg);background:rgba(255,255,255,.92);box-shadow:var(--shadow);overflow:hidden;margin-top:18px}
+.mon-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px}
+.mon-card{padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--surface-soft)}
+.mon-card span{color:var(--muted);font-size:12px}
+.mon-card b{display:block;font-size:22px;margin-top:4px}
+.mon-row{padding:12px 0;border-bottom:1px solid var(--border)}
+.mon-row .meta{display:flex;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap;align-items:center}
+.mon-row .meta b{color:var(--text);font-size:13px}
+.mon-bars{display:flex;gap:2px;margin-top:7px;height:18px;align-items:stretch}
+.mon-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--primary),var(--accent));min-width:2px}
+.chat-head{padding:14px 20px;border-bottom:1px solid var(--border)}
+.dash-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.weather{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--surface-soft);color:var(--primary-dark);font-size:13px;font-weight:600}
+.body-advice{margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--primary-soft);color:var(--primary-dark);font-size:12px;font-weight:600}
+.card-body{display:grid;gap:8px;margin-top:12px}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 10px;border-radius:8px;background:var(--surface-soft)}
+.kv span{color:var(--muted)}
+.kv b{font-weight:600;text-align:right}
+.dash-combined{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:28px;align-items:center}
+.body-side{text-align:center}
+
+@media (max-width:900px){.topbar{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.grid.three{grid-template-columns:1fr}.nav-links{justify-content:flex-start}.two-col{grid-template-columns:1fr}.col{border-right:none}.dash-main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#">
+      <span class="brand-mark">健</span>
+      <span><strong>健康助手</strong><small>饮食 · 营养 · 锻炼 · 一站式管理</small></span>
+    </a>
+    <nav class="nav-links">
+      <a class="active" onclick="showView('home')">首页</a>
+      <a onclick="showView('chat')">聊天</a>
+      <a onclick="showView('monitor')">监控</a>
+      <a onclick="openFlow()">Agent 流程</a>
+    </nav>
+    <span class="badge">多 Agent 健康助手</span>
+  </header>
+
+  <main class="page" id="home">
+    <section class="panel home-top">
+      <div class="input-bar">
+        <div class="field-inline"><label>性别</label><select id="h-sex"><option>男</option><option>女</option></select></div>
+        <div class="field-inline"><label>年龄</label><input id="h-age" type="number" value="25" /></div>
+        <div class="field-inline"><label>身高 cm</label><input id="h-height" type="number" value="175" oninput="renderBody()" /></div>
+        <div class="field-inline"><label>体重 kg</label><input id="h-weight" type="number" value="70" oninput="renderBody()" /></div>
+        <div class="field-inline"><label>活动量</label><select id="h-activity"><option>轻度</option><option>中度</option><option>重度</option></select></div>
+        <div class="field-inline"><label>目标</label><select id="h-goal"><option>减脂</option><option>维持健康</option><option>增肌</option><option>控糖</option></select></div>
+        <button class="btn ghost" onclick="locate()" title="自动定位">📍<span id="loc-status">定位</span></button>
+        <button class="btn primary" onclick="loadDashboard()">计算</button>
+      </div>
+
+      <div class="two-col">
+        <div class="col col-body">
+          <h3 style="margin:0 0 6px">身体画像</h3>
+        <svg viewBox="0 0 120 280" class="body-svg" id="body-svg">
+          <defs>
+            <linearGradient id="bodyg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#8ed4b9"/><stop offset=".5" stop-color="#4fb98b"/><stop offset="1" stop-color="#2f9e73"/>
+            </linearGradient>
+            <radialGradient id="halog" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#7cc9b0" stop-opacity=".22"/><stop offset="1" stop-color="#7cc9b0" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="60" cy="140" r="96" fill="url(#halog)"/>
+          <ellipse cx="60" cy="268" rx="42" ry="6" fill="#18352a" opacity=".06"/>
+          <g id="bd-all">
+            <ellipse cx="60" cy="27" rx="15" ry="18" fill="url(#bodyg)"/>
+            <path d="M53 43 L53 51 Q60 55 67 51 L67 43 Z" fill="url(#bodyg)"/>
+            <g id="bd-body">
+              <path id="bd-torso" d="M60 52 C44 52 33 63 31 81 C29 99 36 121 43 137 C47 147 53 153 60 153 C67 153 73 147 77 137 C84 121 91 99 89 81 C87 63 76 52 60 52 Z" fill="url(#bodyg)"/>
+              <rect x="23" y="60" width="13" height="64" rx="6.5" fill="url(#bodyg)"/>
+              <rect x="84" y="60" width="13" height="64" rx="6.5" fill="url(#bodyg)"/>
+              <circle cx="29.5" cy="126" r="6.5" fill="url(#bodyg)"/>
+              <circle cx="90.5" cy="126" r="6.5" fill="url(#bodyg)"/>
+              <rect x="45" y="150" width="14" height="80" rx="7" fill="url(#bodyg)"/>
+              <rect x="61" y="150" width="14" height="80" rx="7" fill="url(#bodyg)"/>
+              <ellipse cx="52" cy="236" rx="9" ry="6" fill="url(#bodyg)"/>
+              <ellipse cx="68" cy="236" rx="9" ry="6" fill="url(#bodyg)"/>
+            </g>
+          </g>
+        </svg>
+        <p class="muted" id="body-summary" style="margin:10px 0 6px">175cm · 70kg · 减脂</p>
+        <div class="body-advice" id="body-advice">体型正常，适合有氧 + 力量结合</div>
+      </div>
+
+      <div class="col col-dash">
+        <div class="dash-head"><h3 style="margin:0">每日营养目标</h3><span class="weather" id="weather">🌤 加载天气…</span></div>
+        <div class="recent muted" id="recent" style="display:none;margin-bottom:10px">最近：-</div>
+        <div class="dash-main">
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="11"/>
+              <circle id="dash-ring" cx="60" cy="60" r="52" fill="none" stroke="var(--primary)" stroke-width="11" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" transform="rotate(-90 60 60)"/>
+            </svg>
+            <div class="ring-center"><b id="dash-cal">0</b><span id="dash-cal-sub">/ - 千卡</span></div>
+          </div>
+          <div class="bars" id="dash-bars"><p class="muted">填写信息后点「计算」</p></div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid three">
+      <article class="card">
+        <div class="card-title"><div><h3>营养目标</h3><p>每日该吃多少</p></div></div>
+        <div class="card-body" id="card-targets"><p class="muted">填写信息后自动显示</p></div>
+      </article>
+      <article class="card">
+        <div class="card-title"><div><h3>菜单 + 烹饪方式</h3><p>三餐搭配做法</p></div></div>
+        <div class="card-body" id="card-meals"><p class="muted">生成方案后显示</p></div>
+      </article>
+      <article class="card">
+        <div class="card-title"><div><h3>附近采购</h3><p>超市菜市场</p></div></div>
+        <div class="card-body" id="card-markets"><p class="muted">查找后显示</p></div>
+      </article>
+    </section>
+  </main>
+
+  <main class="page" id="chat-view" style="display:none">
+    <section class="chat-card">
+      <div class="chat-head"><h2 style="margin:0">健康助手 · 对话</h2></div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="message assistant"><div class="bubble">你好，我是你的健康助手。可以问我饮食、营养、菜谱、锻炼、天气等问题。</div></div>
+      </div>
+      <div class="chat-composer">
+        <textarea id="chat-input" placeholder="输入你的问题（回车发送，Alt+回车换行）"></textarea>
+        <button class="btn primary" onclick="sendChat()">发送</button>
+      </div>
+    </section>
+  </main>
+
+  <main class="page" id="monitor-view" style="display:none">
+    <section class="panel">
+      <h2 style="margin:0 0 14px">可观测性 · 监控</h2>
+      <div class="mon-summary" id="mon-summary"></div>
+      <div class="mon-list" id="mon-list"></div>
+    </section>
+  </main>
+</div>
+
+<!-- 过程展示器 -->
+<button class="flow-toggle" onclick="openFlow()">⚙️ Agent 流程</button>
+<div class="flow-window" id="flow-window">
+  <div class="flow-head">
+    <b>多 Agent 执行过程</b>
+    <div class="fb">
+      <button onclick="closeFlow()" title="关闭">✕</button>
+    </div>
+  </div>
+  <div class="flow-body">
+    <div class="controls">
+      <select id="p-sex" style="flex:1;min-width:60px;padding:7px;border:1px solid var(--border);border-radius:9px;background:#fff"><option>男</option><option>女</option></select>
+      <input id="p-height" type="number" value="175" style="flex:1;min-width:60px;padding:7px;border:1px solid var(--border);border-radius:9px;background:#fff" />
+      <input id="p-weight" type="number" value="70" style="flex:1;min-width:60px;padding:7px;border:1px solid var(--border);border-radius:9px;background:#fff" />
+      <select id="p-goal" style="flex:1;min-width:70px;padding:7px;border:1px solid var(--border);border-radius:9px;background:#fff"><option>减脂</option><option>维持健康</option><option>增肌</option><option>控糖</option></select>
+      <input id="p-city" value="北京" style="flex:1;min-width:50px;padding:7px;border:1px solid var(--border);border-radius:9px;background:#fff" />
+      <button class="mini-btn primary" onclick="stepNext()">▶ 下一步</button>
+      <button class="mini-btn ghost" onclick="autoPlay()">自动</button>
+    </div>
+    <div class="dag" id="dag"></div>
+  </div>
+</div>
+
+<script>
+const NODES=[
+  {id:'input',no:'▸',label:'输入',sub:'身体信息·目标',layer:0},
+  {id:'router',no:'1',label:'智能路由',sub:'理解需求',layer:1},
+  {id:'profile',no:'2',label:'画像目标',sub:'算该吃多少',layer:2},
+  {id:'meal_planner',no:'3',label:'食谱规划',sub:'三餐+做法',layer:3},
+  {id:'rag',no:'4',label:'知识召回',sub:'膳食指南',layer:3},
+  {id:'amap',no:'5',label:'附近采购',sub:'超市菜市场',layer:3},
+  {id:'validate',no:'6',label:'校验',sub:'是否达标',layer:4},
+  {id:'report',no:'7',label:'报告生成',sub:'汇总方案',layer:5},
+  {id:'output',no:'✓',label:'输出',sub:'菜单·采购',layer:6},
+];
+const LAYERS=[[0],[1],[2],[3,4,5],[6],[7],[8]];
+const EDGE_LABELS={input:'',router:'意图·实体',profile:'营养目标',validate:'目标·忌口',report:'完整方案'};
+
+let STEPS=[],stepMap={},grpIdx=-1,timer=null,inputParams=null,finalResult=null;
+const SEQ=[['router'],['profile'],['meal_planner','rag','amap'],['validate'],['report'],['output']];
+
+function openFlow(){const w=document.getElementById('flow-window');w.classList.add('open');}
+function closeFlow(){const w=document.getElementById('flow-window');w.classList.remove('open');}
+
+function buildDag(){
+  const dag=document.getElementById('dag');
+  dag.innerHTML='';
+  LAYERS.forEach((idxArr,li)=>{
+    const layer=document.createElement('div');
+    layer.className='dglayer';
+    idxArr.forEach(ni=>{
+      const n=NODES[ni];
+      const d=document.createElement('div');
+      d.className='dgnode'+(n.id==='input'?' in':n.id==='output'?' out':'');
+      d.id='node-'+n.id;
+      d.innerHTML=`<span class="no">${n.no}</span><b>${n.label}</b><span class="sub">${n.sub}</span><span class="dot"></span><div class="tip"></div>`;
+      layer.appendChild(d);
+    });
+    dag.appendChild(layer);
+    if(li<LAYERS.length-1){
+      const edge=document.createElement('div');
+      edge.className='dgedge';
+      edge.id='edge-'+li;
+      const lbl=EDGE_LABELS[NODES[idxArr[0]].id]||'';
+      if(lbl)edge.innerHTML=`<span class="elabel">${lbl}</span>`;
+      dag.appendChild(edge);
+    }
+    if(idxArr.length>1){
+      const pb=document.createElement('div');
+      pb.className='parbar';pb.style.width='100%';
+      pb.innerHTML='<span>⚡ 三个 Agent 并行执行</span>';
+      dag.appendChild(pb);
+    }
+  });
+  const fb=document.createElement('div');
+  fb.className='feedback';
+  fb.innerHTML='<span class="fline"></span><span>校验不达标 → 发消息重新规划</span>';
+  dag.appendChild(fb);
+}
+
+function setNode(id,cls){
+  const el=document.getElementById('node-'+id);
+  if(el){el.classList.remove('running','done');if(cls)el.classList.add(cls);}
+}
+function setEdge(li,on){const e=document.getElementById('edge-'+li);if(e)e.classList.toggle('active',on);}
+
+function fillTip(id){
+  const el=document.getElementById('node-'+id);
+  if(!el)return;
+  const tip=el.querySelector('.tip');
+  if(!tip)return;
+  if(id==='input'){
+    const b=inputParams||{};
+    tip.innerHTML=`<div class="narr">收到你的信息</div><div class="vb-label">↪ 输入</div><pre>${JSON.stringify({身高:b.height_cm,体重:b.weight_kg,目标:b.goal,城市:b.city},null,2)}</pre>`;
+    return;
+  }
+  if(id==='output'){
+    const r=(finalResult&&finalResult.report)||{};
+    const meals=(r.meals||[]).map(m=>m.slot+'：'+m.items.map(i=>i.food+'('+i.cooking+')').join('、')).join('\n');
+    const mkts=((r.shopping||{}).markets||[]).slice(0,3).map(x=>x.name).join('、');
+    tip.innerHTML=`<div class="narr">完整方案已生成</div><div class="vb-label">↪ 方案总览</div><pre>${r.summary||''}</pre><div class="vb-label">↩ 三餐（含做法）</div><pre>${meals||''}</pre><div class="vb-label">🛒 附近采购</div><pre>${mkts||''}</pre>`;
+    return;
+  }
+  const s=stepMap[id];
+  if(!s){tip.innerHTML='<span class="muted">无数据</span>';return;}
+  const msgs=(s.output&&s.output['发出的消息'])||[];
+  tip.innerHTML=
+    (s.narration?`<div class="narr">${s.narration}</div>`:'')+
+    `<div class="vb-label">↪ 输入</div><pre>${JSON.stringify(s.input,null,2)}</pre>`+
+    `<div class="vb-label">🔧 工具</div>${(s.tools||[]).map(t=>`<div class="tool">${t}</div>`).join('')||'<span class="muted">无</span>'}`+
+    (msgs.length?`<div class="vb-label">💬 发出的消息</div>${msgs.map(m=>`<div class="msg">${m.from}→${m.to}：${m.reason}</div>`).join('')}`:'')+
+    `<div class="vb-label">↩ 输出</div><pre>${JSON.stringify(s.output,null,2)}</pre>`;
+}
+
+async function loadSteps(){
+  const body={sex:document.getElementById('p-sex').value,height_cm:+document.getElementById('p-height').value,weight_kg:+document.getElementById('p-weight').value,goal:document.getElementById('p-goal').value,city:document.getElementById('p-city').value,age:25,activity:'中度'};
+  inputParams=body;
+  const d=await post('/api/plan/steps',body);
+  STEPS=d.steps||[];stepMap={};
+  STEPS.forEach(s=>{stepMap[s.node]=s;});
+  finalResult=d.result;
+  NODES.forEach(n=>fillTip(n.id));
+  resetAll();setNode('input','done');grpIdx=-1;
+}
+
+async function stepNext(){
+  stopAuto();
+  if(!STEPS.length)await loadSteps();
+  if(grpIdx>=0)SEQ[grpIdx].forEach(id=>setNode(id,'done'));
+  grpIdx=Math.min(grpIdx+1,SEQ.length-1);
+  SEQ[grpIdx].forEach(id=>{id==='output'?setNode('output','done'):setNode(id,'running');});
+  const el=document.getElementById('node-'+SEQ[grpIdx][0]);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function startFlow(){openFlow();stepNext();}
+
+function autoPlay(){
+  stopAuto();loadSteps().then(()=>{
+    let i=0;
+    function play(){
+      if(i>=SEQ.length)return;
+      if(i>0)SEQ[i-1].forEach(id=>setNode(id,'done'));
+      SEQ[i].forEach(id=>{id==='output'?setNode('output','done'):setNode(id,'running');});
+      i++;
+      timer=setTimeout(play,SEQ[i-1].length>1?1100:700);
+    }
+    play();
+  });
+}
+function stopAuto(){if(timer){clearTimeout(timer);timer=null;}}
+function resetAll(){NODES.forEach(n=>setNode(n.id,null));for(let i=0;i<6;i++)setEdge(i,false);}
+
+async function post(url,body){
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({error:'非JSON响应'}));
+  if(!r.ok)throw new Error(JSON.stringify(d));
+  return d;
+}
+
+buildDag();
+
+/* ===== 聊天（多轮记忆） ===== */
+let sessionId=null;
+function showView(v){
+  document.getElementById('home').style.display = v==='home'?'block':'none';
+  document.getElementById('chat-view').style.display = v==='chat'?'block':'none';
+  document.getElementById('monitor-view').style.display = v==='monitor'?'block':'none';
+  if(v==='chat'){document.getElementById('chat-input').focus();}
+  if(v==='monitor'){loadMonitor();}
+}
+async function loadMonitor(){
+  try{
+    const d=await (await fetch('/api/observability')).json();
+    const s=d.summary||{};
+    document.getElementById('mon-summary').innerHTML=
+      `<div class="mon-card"><span>请求数</span><b>${s['请求数']||0}</b></div>`+
+      `<div class="mon-card"><span>平均耗时</span><b>${s['平均耗时_ms']||0}ms</b></div>`+
+      `<div class="mon-card"><span>总 token</span><b>${(s['总输入token']||0)+(s['总输出token']||0)}</b></div>`+
+      `<div class="mon-card"><span>总成本</span><b>¥${s['总成本_元']||0}</b></div>`;
+    const traces=d.traces||[];
+    const maxDur=Math.max(1,...traces.map(t=>t.duration_ms));
+    document.getElementById('mon-list').innerHTML = traces.length
+      ? traces.map(t=>{
+          const bars=(t.layers||[]).map(l=>`<div class="mon-bar" style="width:${Math.max(2,l.duration_ms/maxDur*100)}%" title="${l.nodes.join('、')} · ${l.duration_ms}ms"></div>`).join('');
+          return `<div class="mon-row"><div class="meta"><b>${t.task_type}</b><span>${t.duration_ms}ms</span><span>${t.prompt_tokens}+${t.completion_tokens} tokens</span><span>${new Date(t.ts*1000).toLocaleTimeString()}</span></div><div class="mon-bars">${bars}</div></div>`;
+        }).join('')
+      : '<p class="muted">暂无请求记录，先去「生成方案」跑一次。</p>';
+  }catch(e){document.getElementById('mon-list').innerHTML='<span class="err">'+e.message+'</span>';}
+}
+function appendMsg(role,text){
+  const box=document.getElementById('chat-messages');
+  const m=document.createElement('div');
+  m.className='message '+role;
+  m.innerHTML='<div class="bubble">'+text+'</div>';
+  box.appendChild(m);
+  box.scrollTop=box.scrollHeight;
+}
+async function sendChat(){
+  const input=document.getElementById('chat-input');
+  const msg=input.value.trim();
+  if(!msg)return;
+  appendMsg('user',msg);
+  input.value='';
+  try{
+    const d=await post('/api/chat',{message:msg,session_id:sessionId,location:userLocation,city:userCity});
+    sessionId=d.session_id;
+    appendMsg('assistant',d.reply);
+    if(d.brief){
+      const r=document.getElementById('recent');
+      r.style.display='block';
+      r.textContent='最近：'+d.brief;
+    }
+    if(d.intent==='diet_analyze'||d.intent==='plan_all'||d.intent==='goal'){loadDashboard();}
+  }catch(e){appendMsg('assistant','抱歉，出错了：'+e.message);}
+}
+document.getElementById('chat-input').addEventListener('keydown', function(e){
+  if(e.key==='Enter' && !e.altKey && !e.shiftKey){e.preventDefault();sendChat();}
+});
+
+/* ===== 仪表盘 + 人体 + 天气 + 定位 ===== */
+let userLocation=null,userCity=null;
+function renderBody(){
+  const h=+document.getElementById('h-height').value||175;
+  const w=+document.getElementById('h-weight').value||70;
+  const goal=document.getElementById('h-goal').value;
+  const bmi=w/Math.pow(h/100,2);
+  const wf=Math.max(0.78,Math.min(1.4,bmi/22));
+  document.getElementById('bd-body').setAttribute('transform','translate(60 0) scale('+wf+' 1) translate(-60 0)');
+  const hf=Math.max(0.82,Math.min(1.25,h/175));
+  document.getElementById('body-svg').style.height=(180*hf)+'px';
+  const bmiCat=bmi<18.5?'偏瘦':bmi<24?'正常':bmi<28?'偏重':'偏胖';
+  document.getElementById('body-summary').textContent=h+'cm · '+w+'kg · '+goal+' · BMI '+bmi.toFixed(1)+'（'+bmiCat+'）';
+  document.getElementById('body-advice').textContent=bodyAdvice(bmi,goal);
+}
+function bodyAdvice(bmi,goal){
+  let base;
+  if(bmi<18.5) base='偏瘦，适合增肌：力量训练 + 充足蛋白';
+  else if(bmi<24) base='体型正常，适合有氧 + 力量结合';
+  else if(bmi<28) base='偏重，适合有氧减脂：快走/慢跑/游泳';
+  else base='偏胖，建议低强度有氧起步 + 控制饮食';
+  if(goal==='增肌') base='增肌期：力量训练为主 + 少量有氧';
+  if(goal==='减脂') base='减脂期：有氧为主 + 力量训练，注意蛋白';
+  return base;
+}
+async function loadWeather(){
+  const city=userCity||'北京';
+  try{
+    const d=await (await fetch('/api/weather?city='+encodeURIComponent(city))).json();
+    document.getElementById('weather').textContent=d.weather?('🌤 '+d.city+' '+d.weather+' '+d.temperature+'℃'):('天气：'+(d.error||'未知'));
+  }catch(e){document.getElementById('weather').textContent='天气加载失败';}
+}
+function renderHomeCards(d){
+  const t=d.targets||{};
+  document.getElementById('card-targets').innerHTML = t.calories
+    ? `<div class="kv"><span>热量</span><b>${Math.round(t.calories)} 千卡</b></div>`+
+      `<div class="kv"><span>蛋白质</span><b>${t.protein_g}g</b></div>`+
+      `<div class="kv"><span>脂肪</span><b>${t.fat_g}g</b></div>`+
+      `<div class="kv"><span>碳水</span><b>${t.carb_g}g</b></div>`
+    : '<p class="muted">填写信息后自动显示</p>';
+  const meals=d.plan||[];
+  document.getElementById('card-meals').innerHTML = meals.length
+    ? meals.map(m=>`<div class="kv"><span>${m.slot}</span><b>${m.items.map(i=>i.food).join('、')}</b></div>`).join('')
+    : '<p class="muted">生成方案后显示</p>';
+  const mkts=d.markets||[];
+  document.getElementById('card-markets').innerHTML = mkts.length
+    ? mkts.slice(0,4).map(x=>`<div class="kv"><span>${x.name}</span><b>${x.distance_m?Math.round(x.distance_m)+'m':(x.rating?'★'+x.rating:'-')}</b></div>`).join('')
+    : '<p class="muted">查找后显示</p>';
+}
+async function loadDashboard(){
+  renderBody();loadWeather();
+  const body={sex:document.getElementById('h-sex').value,age:+document.getElementById('h-age').value,height_cm:+document.getElementById('h-height').value,weight_kg:+document.getElementById('h-weight').value,activity:document.getElementById('h-activity').value,goal:document.getElementById('h-goal').value};
+  try{
+    const d=await post('/api/dashboard',body);
+    const t=d.targets;
+    const intake=d.intake||{};
+    const cal=Math.round(intake.energy_kcal||0);
+    document.getElementById('dash-cal').textContent=cal;
+    document.getElementById('dash-cal-sub').textContent='/'+Math.round(t.calories)+' 千卡';
+    const pct=Math.min(1,(intake.energy_kcal||0)/(t.calories||1));
+    document.getElementById('dash-ring').setAttribute('stroke-dashoffset',(326.7*(1-pct)).toFixed(1));
+    renderBars(t,intake);
+    renderHomeCards(d);
+  }catch(e){document.getElementById('dash-bars').innerHTML='<span class="muted">出错了：'+e.message+'</span>';}
+}
+function renderBars(t,intake){
+  const in2=intake||{};
+  const rows=[
+    {label:'蛋白质',g:t.protein_g,ig:in2.protein_g||0,unit:'g'},
+    {label:'脂肪',g:t.fat_g,ig:in2.fat_g||0,unit:'g'},
+    {label:'碳水',g:t.carb_g,ig:in2.carb_g||0,unit:'g'},
+  ];
+  let html=rows.map(r=>{
+    const pct=Math.min(100,Math.round(r.ig/(r.g||1)*100));
+    return `<div class="bar-row"><span class="bl">${r.label}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bv">${Math.round(r.ig)}/${r.g}${r.unit}</span></div>`;
+  }).join('');
+  html+=`<div class="bar-row"><span class="bl">膳食纤维</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,(in2.fiber_g||0)/(t.fiber_g||1)*100)}%"></div></div><span class="bv">${Math.round(in2.fiber_g||0)}/${t.fiber_g}g</span></div>`;
+  html+=`<div class="bar-row"><span class="bl">钠</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,(in2.sodium_mg||0)/(t.sodium_mg||1)*100)}%"></div></div><span class="bv">${Math.round(in2.sodium_mg||0)}/${t.sodium_mg}mg</span></div>`;
+  document.getElementById('dash-bars').innerHTML=html;
+}
+function locate(){
+  if(!navigator.geolocation){document.getElementById('loc-status').textContent='不支持';return;}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    userLocation=pos.coords.longitude.toFixed(6)+','+pos.coords.latitude.toFixed(6);
+    try{
+      const d=await (await fetch('/api/regeo?location='+userLocation)).json();
+      if(d.city){userCity=d.city;document.getElementById('loc-status').textContent=d.city;}
+      else{document.getElementById('loc-status').textContent='已定位';}
+    }catch(e){document.getElementById('loc-status').textContent='已定位';}
+    loadWeather();
+  },()=>{document.getElementById('loc-status').textContent='定位失败';});
+}
+loadDashboard();
+locate();
+</script>
+</body>
+</html>

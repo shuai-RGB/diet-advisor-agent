@@ -1,0 +1,12 @@
+services:
+  diet-advisor:
+    build: .
+    image: diet-advisor-agent:latest
+    ports:
+      - "8000:8000"
+    environment:
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      AMAP_KEY: ${AMAP_KEY:-}
+    restart: unless-stopped

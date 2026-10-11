@@ -1,0 +1,19 @@
+# ===== Agent 编排 =====
+langgraph>=0.2.0
+langchain-core>=0.2.0
+
+# ===== 数据 / 检索 =====
+pandas>=2.0.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+rank-bm25>=0.2.2
+joblib>=1.3.0
+
+# ===== Web API =====
+fastapi>=0.110.0
+uvicorn>=0.29.0
+pydantic>=2.6.0
+python-dotenv>=1.0.0
+
+# ===== 可选：LLM 大脑（OpenAI 兼容接口，配置 .env 后启用）=====
+openai>=1.30.0
